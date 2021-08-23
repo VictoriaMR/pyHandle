@@ -14,9 +14,11 @@ class Mouse:
 			return False
 		time.sleep(Mouse.time())
 		pyautogui.click()
+		time.sleep(Mouse.time())
 		return True
 
 	def moveTo(x, y):
+		time.sleep(Mouse.time())
 		if not pyautogui.onScreen(x, y):
 			return False
 		# 移动到目标鼠标位置
@@ -48,6 +50,8 @@ class Mouse:
 
 			if mx == x and my == y:
 				break
+
+		time.sleep(Mouse.time())
 		return True
 
 	def getMoveType():
@@ -58,14 +62,14 @@ class Mouse:
 	def flush(x, y):
 		time.sleep(Mouse.time());
 
-		arr = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5];
+		arr = [3, 3, 4, 4, 5, 5, 5, 5, 5];
 		index = random.randint(0, len(arr) - 1)
 		count = arr[index];
 
-		if random.randint(0, 5) >= 2:
+		if random.randint(0, 5) >= 4:
 			ctrl = False;
 
-			if random.randint(0, 5) >= 2:
+			if random.randint(0, 5) >= 4:
 				ctrl = True
 
 			if ctrl:
@@ -92,14 +96,10 @@ class Mouse:
 		return True
 
 	def slider(x, y, w):
-		time.sleep(Mouse.time())
-
 		# 移动到目标鼠标位置
 		rst = Mouse.moveTo(x, y)
 		if not rst:
 			return False
-
-		time.sleep(Mouse.time())
 
 		# 左键按下
 		pyautogui.mouseDown(button='left')
@@ -130,5 +130,29 @@ class Mouse:
 
 		return True
 
+	def input(x, y, value):
+		# 移动到目标鼠标位置点击
+		rst = Mouse.click(x, y)
+		if not rst:
+			return False
+
+		Mouse.backspace()
+
+		# 输入
+		pyautogui.typewrite(value)
+
+		return True
+
+	def backspace():
+		time.sleep(Mouse.time())
+		cycleTime = 20;
+		while cycleTime > 0:
+			pyautogui.typewrite(["backspace"])
+			time.sleep(Mouse.time(1000))
+			cycleTime = cycleTime - 1;
+
+		return True
+
+
 	def time(time=100):
-		return random.randint(0, 100)/time
+		return random.randint(10, random.randint(66, 110))/time

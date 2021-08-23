@@ -16,12 +16,12 @@ app = web.application(urls,globals())
 class index:
     def GET(self):
         web.header('content-type', 'text/json;charset=utf-8')
-        params = web.input(act='',x=0,y=0,w=0,nc=False)
+        params = web.input(act='',x=0,y=0,w=0,nc=False,value='',extid='')
         return self.doAct(params)
 
     def POST(self):
         web.header('content-type', 'text/json;charset=utf-8')
-        params = web.input(act='',x=0,y=0,w=0,nc=False)
+        params = web.input(act='',x=0,y=0,w=0,nc=False,value='',extid='')
         return self.doAct(params)
 
     def error(self, msg='', code=-1):
@@ -57,41 +57,44 @@ class index:
         x = float(params['x'])
         y = float(params['y'])
         w = float(params['w'])
+        value = params['value']
 
         # 动作分发
         global clientInfo, isFree, countTime, intervalTime
         rst = False
         print(act, clientInfo, isFree, countTime, intervalTime)
+
+        if act != 'end':
+            rst = self.check(params)
+            if not rst:
+                return self.error('客户端正在工作中, 请稍后再试')
+
+        countTime = countTime + 1;
+
+        if countTime >= int(random.randint(0, 10) + 10):
+            self.clearInfo()
+            return self.error('尝试次数过多, 请稍后再试', -4)
+
+        intervalTime = int(time.time())
+
+        # 点击动作
         if act == 'click':
-            rst = self.check(params)
-            if not rst:
-                return self.error('客户端正在工作中, 请稍后再试')
-            intervalTime = int(time.time())
             rst = Mouse.click(x, y)
+        # 刷新动作
         elif act == 'flush':
-            rst = self.check(params)
-            if not rst:
-                return self.error('客户端正在工作中, 请稍后再试')
-            intervalTime = int(time.time())
             rst = Mouse.flush(x, y)
+        # 拖动动作
         elif act == 'slider':
-            rst = self.check(params)
-            if not rst:
-                return self.error('客户端正在工作中, 请稍后再试')
-            intervalTime = int(time.time())
-            countTime = countTime + 1;
-            # 持续大于50 先行跳过
             rst = Mouse.slider(x, y, w)
-            if countTime >= int(random.randint(0, 10) + 15):
-                self.clearInfo()
-                return self.error('尝试次数过多, 请稍后再试', -4)
+        # 输入动作
+        elif act == 'input':
+            rst = Mouse.input(x, y, value)
+        # 获得开始锁
         elif act == 'start':
-            rst = self.check(params)
-            if not rst:
-                return self.error('客户端正在工作中, 请稍后再试')
+            self.clearInfo()
             isFree = False
-            intervalTime = int(time.time())
             clientInfo['extid'] = params['extid']
+        # 释放锁
         elif act == 'end':
             if clientInfo['extid'] == params['extid']:
                 self.clearInfo()
